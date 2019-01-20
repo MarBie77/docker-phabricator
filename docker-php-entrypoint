@@ -1,0 +1,116 @@
+#!/bin/sh
+set -e
+set -x
+
+ROOT=/var/www/html
+CONFIG_BIN=${ROOT}/phabricator/bin/config
+
+# if nothing on the volume, do a full install by cloning repos
+if [ ! -d "${ROOT}/libphutil" ]; then
+   git clone https://github.com/phacility/libphutil.git
+fi
+
+if [ ! -d "${ROOT}/arcanist" ]; then
+   git clone https://github.com/phacility/arcanist.git
+fi
+
+if [ ! -d "${ROOT}/phabricator" ]; then
+   git clone https://github.com/phacility/phabricator.git
+fi
+
+if [ "${UPGRADE_ON_RESTART}" != "no" ]; then
+   # do an upgrade before starting main php-fpm process
+   ### UPDATE WORKING COPIES ######################################################
+
+   cd $ROOT/libphutil
+   sudo -n -u www-data git pull
+
+   cd $ROOT/arcanist
+   sudo -n -u www-data git pull
+
+   cd $ROOT/phabricator
+   sudo -n -u www-data git pull
+
+   ### DO STORAGE UPGRADE IF NEEDED ###############################################
+   $ROOT/phabricator/bin/storage upgrade --force
+fi
+
+# start configuration of phabricator with docker environment variables
+if [ "${PHAB_PHD_USER}" != "" ]
+then
+    sudo -n -u www-data ${CONFIG_BIN} set phd.user ${PHAB_PHD_USER}
+fi
+
+if [ "${PHAB_DIFFUSION_SSH_PORT}" != "" ]
+then
+    sudo -n -u www-data ${CONFIG_BIN} set diffusion.ssh-port ${PHAB_DIFFUSION_SSH_PORT}
+fi
+
+if [ "${PHAB_DIFFUSION_SSH_USER}" != "" ]
+then
+    sudo -n -u www-data ${CONFIG_BIN} set diffusion.ssh-user ${PHAB_DIFFUSION_SSH_USER}
+fi
+
+if [ "${PHAB_PHABRICATOR_BASE_URI}" != "" ]
+then
+    sudo -n -u www-data ${CONFIG_BIN} set phabricator.base-uri ${PHAB_PHABRICATOR_BASE_URI}
+fi
+
+if [ "${PHAB_MYSQL_PASS}" != "" ]
+then
+    sudo -n -u www-data ${CONFIG_BIN} set mysql.pass ${PHAB_MYSQL_PASS}
+fi
+
+if [ "${PHAB_MYSQL_USER}" != "" ]
+then
+    sudo -n -u www-data ${CONFIG_BIN} set mysql.user ${PHAB_MYSQL_USER}
+fi
+
+if [ "${PHAB_MYSQL_HOST}" != "" ]
+then
+    sudo -n -u www-data ${CONFIG_BIN} set mysql.host ${PHAB_MYSQL_HOST}
+fi
+
+if [ "${PHAB_STORAGE_MYSQL_ENGINE_MAX_SIZE}" != "" ]
+then
+    sudo -n -u www-data ${CONFIG_BIN} set storage.mysql-engine.max-size ${PHAB_STORAGE_MYSQL_ENGINE_MAX_SIZE}
+fi
+
+# copy sshd config for phabricator
+if [ ! -e /etc/ssh/sshd_config.phabricator ]
+then
+    sed 's/PHAB_DIFFUSION_SSH_PORT/'"${PHAB_DIFFUSION_SSH_PORT}"'/g; s/PHAB_DIFFUSION_SSH_USER/'"${PHAB_DIFFUSION_SSH_USER}"'/g' /usr/src/docker-phab/sshd_config.phabricator > /etc/ssh/sshd_config.phabricator
+fi
+
+# copy ssh hook
+if [ ! -e /usr/libexec/phabricator-ssh-hook.sh ]
+then
+    sed 's/PHAB_DIFFUSION_SSH_PORT/'"${PHAB_DIFFUSION_SSH_PORT}"'/g; s/PHAB_DIFFUSION_SSH_USER/'"${PHAB_DIFFUSION_SSH_USER}"'/g' /usr/src/docker-phab/phabricator-ssh-hook.sh > /usr/libexec/phabricator-ssh-hook.sh
+    chmod +x /usr/libexec/phabricator-ssh-hook.sh
+fi
+
+# check sudo for git usage
+if [ ! -e /etc/sudoers.d/${PHAB_DIFFUSION_SSH_USER}-sudo ]
+then
+    sed 's/PHAB_PHD_USER/'"${PHAB_PHD_USER}"'/g; s/PHAB_DIFFUSION_SSH_USER/'"${PHAB_DIFFUSION_SSH_USER}"'/g' /usr/src/docker-phab/git-sudo > /etc/sudoers.d/${PHAB_DIFFUSION_SSH_USER}-sudo
+    chmod 440 /etc/sudoers.d/${PHAB_DIFFUSION_SSH_USER}-sudo
+fi
+
+# generate key if necessary (i.e. new docker image)
+if [ ! -e /etc/ssh/ssh_host_dsa_key ] || [ ! -e /etc/ssh/ssh_host_rsa_key ] || [ ! -e /etc/ssh/ssh_host_ecdsa_key ] || [ ! -e /etc/ssh/ssh_host_ed25519_key ]
+then
+   ssh-keygen -A
+fi
+
+# start sshd for git
+/usr/sbin/sshd -e -f /etc/ssh/sshd_config.phabricator
+
+# start phabricator tasks
+sudo -E -n -u phduser /var/www/html/phabricator/bin/phd start
+
+# first arg is `-f` or `--some-option`
+if [ "${1#-}" != "$1" ]; then
+	set -- php "$@"
+fi
+
+exec "$@"
