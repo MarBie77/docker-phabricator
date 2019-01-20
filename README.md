@@ -81,4 +81,4 @@ networks:
 ```
 
 ### Known Problems
-* Connecting to Diffusion GIT-Server ends with a SEGFAULT in the PHP-script, though everything works find.
+* Connecting to Diffusion GIT-Server ends with a SEGFAULT in the PHP-script, though everything works fine.
