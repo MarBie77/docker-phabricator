@@ -66,7 +66,7 @@ services:
       - PHAB_MYSQL_HOST=mariadb
       - PHAB_STORAGE_MYSQL_ENGINE_MAX_SIZE=8388608
     ports:
-      - "2430:2430"
+      - "2530:2530"
     networks:
       app_net:
         ipv4_address: 172.29.0.130
