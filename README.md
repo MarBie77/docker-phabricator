@@ -148,6 +148,10 @@ max_allowed_packet=33554432
 
 Do not forget to backup your GIT-repositories (/var/repo)!
 
+## Update Phabricator
+
+Just restart the container and the entrypoint will automatically try to pull the latest code. If anything goes wrong, look into the log of the container.
+
 ## Known Problems
 
 - Connecting to Diffusion GIT-Server ends with a SEGFAULT in the PHP-script, though everything works fine.
