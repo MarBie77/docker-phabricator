@@ -1,8 +1,10 @@
 # docker-phabricator
+
 Docker image for Phabricator Deployment
 
 ## Usage in docker-compose.yml
-Nginx and MariaDB-Configs not included.
+
+Nginx and mariaDB-configuration see below!
 
 ```yaml
 version: '3'
@@ -80,5 +82,72 @@ networks:
         - subnet: 172.29.0.0/16
 ```
 
-### Known Problems
-* Connecting to Diffusion GIT-Server ends with a SEGFAULT in the PHP-script, though everything works fine.
+## Volumes
+
+- **/var/www/html**: phabricator files and local config
+- **/etc/ssh**: holds sshd-config for diffusion and key files (if keys are not on a volume, the fingerprint of the server will be regenerated on each start)
+- **/var/repo**: storage for the git repositories (/var/repo itself must have the permission to be writeable for the docker!)
+
+### Nginx example configuration
+
+nginx configuration example for use of the docker-phabricator image.
+
+```Nginx
+server {
+    root        /www/phabricator/webroot;
+
+    listen       443 ssl http2;
+    server_name  phabricator.example.com;
+    index index.php index.html index.htm;
+
+    ssl_certificate "/etc/letsencrypt/live/phabricator.example.com/fullchain.pem";
+    ssl_certificate_key "/etc/letsencrypt/live/phabricator.example.com/privkey.pem";
+    include /etc/nginx/ssl_config;
+
+    location / {
+        index index.php;
+        rewrite ^/(.*)$ /index.php?__path__=/$1 last;
+    }
+
+    location /index.php {
+        fastcgi_pass   phabricator:9000;
+        fastcgi_index   index.php;
+
+        #required if PHP was built with --enable-force-cgi-redirect
+        fastcgi_param  REDIRECT_STATUS    200;
+
+        #variables to make the $_SERVER populate in PHP
+        fastcgi_param  SCRIPT_FILENAME    /var/www/html/phabricator/webroot$fastcgi_script_name;
+        fastcgi_param  QUERY_STRING       $query_string;
+        fastcgi_param  REQUEST_METHOD     $request_method;
+        fastcgi_param  CONTENT_TYPE       $content_type;
+        fastcgi_param  CONTENT_LENGTH     $content_length;
+
+        fastcgi_param  SCRIPT_NAME        $fastcgi_script_name;
+
+        fastcgi_param  GATEWAY_INTERFACE  CGI/1.1;
+        fastcgi_param  SERVER_SOFTWARE    nginx/$nginx_version;
+
+        fastcgi_param  REMOTE_ADDR        $remote_addr;
+    }
+}
+```
+
+### MariaDB-Config
+
+Just one file needed for phabricator config, named phabricator.cnf:
+
+```ini
+[mysqld]
+sql_mode=STRICT_ALL_TABLES
+local_infile=0
+max_allowed_packet=33554432
+```
+
+### Backup you GIT-Repositories
+
+Do not forget to backup your GIT-repositories (/var/repo)!
+
+## Known Problems
+
+- Connecting to Diffusion GIT-Server ends with a SEGFAULT in the PHP-script, though everything works fine.
