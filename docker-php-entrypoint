@@ -76,6 +76,11 @@ then
     sudo -n -u www-data ${CONFIG_BIN} set storage.mysql-engine.max-size ${PHAB_STORAGE_MYSQL_ENGINE_MAX_SIZE}
 fi
 
+if [ "${PHAB_METAMTA_DEFAULT_ADDRESS}" != "" ]
+then
+    sudo -n -u www-data ${CONFIG_BIN} set metamta.default-address ${PHAB_METAMTA_DEFAULT_ADDRESS}
+fi
+
 # copy sshd config for phabricator
 if [ ! -e /etc/ssh/sshd_config.phabricator ]
 then
