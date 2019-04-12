@@ -81,6 +81,9 @@ then
     sudo -n -u www-data ${CONFIG_BIN} set metamta.default-address ${PHAB_METAMTA_DEFAULT_ADDRESS}
 fi
 
+# set option auth.lock-config to true to prevent attacks
+sudo -n -u www-data ${CONFIG_BIN} set auth.lock-config true
+
 # copy sshd config for phabricator
 if [ ! -e /etc/ssh/sshd_config.phabricator ]
 then
