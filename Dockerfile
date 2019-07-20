@@ -13,6 +13,7 @@ RUN NPROC=$(grep -c ^processor /proc/cpuinfo 2>/dev/null || 1) \
  && docker-php-ext-configure opcache --enable-opcache \
  && docker-php-ext-install -j${NPROC} opcache \
  && docker-php-ext-install -j${NPROC} mysqli \
+ && docker-php-ext-install -j${NPROC} zip \
  && docker-php-ext-install -j${NPROC} pcntl \
  && pecl install apcu \
  && docker-php-ext-enable apcu \
