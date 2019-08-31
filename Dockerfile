@@ -2,7 +2,7 @@ FROM php:7.3-fpm-alpine
 LABEL maintainer="Martin Biermair <martin@biermair.at>"
 
 # install alpine packages
-RUN apk add --no-cache bash openssh-server openssh-keygen git freetype libpng libjpeg-turbo freetype-dev libpng-dev libjpeg-turbo-dev py-pygments sudo sed procps zip libzip \
+RUN apk add --no-cache bash openssh-server openssh-keygen git freetype libpng libjpeg-turbo freetype-dev libpng-dev libjpeg-turbo-dev py-pygments sudo sed procps zip libzip libzip-dev \
  && apk add --virtual .phpize-deps \
     $PHPIZE_DEPS
 
