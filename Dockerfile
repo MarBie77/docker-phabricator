@@ -8,7 +8,7 @@ RUN apk add --no-cache bash openssh-server openssh-keygen git freetype libpng li
 
 # add php modules
 RUN NPROC=$(grep -c ^processor /proc/cpuinfo 2>/dev/null || 1) \
-# && docker-php-ext-configure gd - \
+ && docker-php-ext-configure gd --with-freetype --with-jpeg \
  && docker-php-ext-install -j${NPROC} gd \
  && docker-php-ext-configure opcache --enable-opcache \
  && docker-php-ext-install -j${NPROC} opcache \
