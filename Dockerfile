@@ -1,4 +1,4 @@
-FROM php:7.3-fpm-alpine
+FROM php:7.4-fpm-alpine
 LABEL maintainer="Martin Biermair <martin@biermair.at>"
 
 # install alpine packages
@@ -8,7 +8,7 @@ RUN apk add --no-cache bash openssh-server openssh-keygen git freetype libpng li
 
 # add php modules
 RUN NPROC=$(grep -c ^processor /proc/cpuinfo 2>/dev/null || 1) \
- && docker-php-ext-configure gd --with-gd --with-freetype-dir=/usr/include/ --with-png-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
+# && docker-php-ext-configure gd - \
  && docker-php-ext-install -j${NPROC} gd \
  && docker-php-ext-configure opcache --enable-opcache \
  && docker-php-ext-install -j${NPROC} opcache \
