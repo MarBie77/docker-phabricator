@@ -23,13 +23,13 @@ if [ "${UPGRADE_ON_RESTART}" != "no" ]; then
    ### UPDATE WORKING COPIES ######################################################
 
    cd $ROOT/libphutil
-   sudo -n -u www-data git pull
+   sudo -n -u www-data git pull --ff-only
 
    cd $ROOT/arcanist
-   sudo -n -u www-data git pull
+   sudo -n -u www-data git pull --ff-only
 
    cd $ROOT/phabricator
-   sudo -n -u www-data git pull
+   sudo -n -u www-data git pull --ff-only
 
    ### DO STORAGE UPGRADE IF NEEDED ###############################################
    $ROOT/phabricator/bin/storage upgrade --force
