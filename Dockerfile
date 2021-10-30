@@ -20,7 +20,7 @@ RUN NPROC=$(grep -c ^processor /proc/cpuinfo 2>/dev/null || 1) \
  && apk del --no-cache freetype-dev libpng-dev libjpeg-turbo-dev
 
 # get cacert.pem, so http 60 error on lets encrypt & co does not occur
-RUN wget https://curl.se/ca/cacert.pem -O /etc/cacert-pem
+RUN wget https://curl.se/ca/cacert.pem -O /etc/cacert.pem
 
 # configure php for production
 RUN mv $PHP_INI_DIR/php.ini-production $PHP_INI_DIR/php.ini
