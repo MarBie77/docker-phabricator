@@ -2,7 +2,7 @@ FROM php:7.4-fpm-alpine
 LABEL maintainer="Martin Biermair <martin@biermair.at>"
 
 # install alpine packages
-RUN apk add --no-cache bash openssh-server openssh-keygen git freetype libpng libjpeg-turbo freetype-dev libpng-dev libjpeg-turbo-dev py-pygments sudo sed procps zip libzip libzip-dev \
+RUN apk add --no-cache bash openssh-server openssh-keygen git freetype libpng libjpeg-turbo freetype-dev libpng-dev libjpeg-turbo-dev py-pygments sudo sed procps zip libzip libzip-dev wget \
  && apk add --virtual .phpize-deps \
     $PHPIZE_DEPS
 
@@ -18,6 +18,9 @@ RUN NPROC=$(grep -c ^processor /proc/cpuinfo 2>/dev/null || 1) \
  && pecl install apcu \
  && docker-php-ext-enable apcu \
  && apk del --no-cache freetype-dev libpng-dev libjpeg-turbo-dev
+
+# get cacert.pem, so http 60 error on lets encrypt & co does not occur
+RUN wget https://curl.se/ca/cacert.pem -O /etc/cacert-pem
 
 # configure php for production
 RUN mv $PHP_INI_DIR/php.ini-production $PHP_INI_DIR/php.ini
