@@ -30,30 +30,6 @@ if [ "${UPGRADE_ON_RESTART}" != "no" ]; then
 
    cd $ROOT/phabricator
    sudo -n -u www-data git pull --ff-only
-
-   ### DO STORAGE UPGRADE IF NEEDED ###############################################
-   $ROOT/phabricator/bin/storage upgrade --force
-fi
-
-# start configuration of phabricator with docker environment variables
-if [ "${PHAB_PHD_USER}" != "" ]
-then
-    sudo -n -u www-data ${CONFIG_BIN} set phd.user ${PHAB_PHD_USER}
-fi
-
-if [ "${PHAB_DIFFUSION_SSH_PORT}" != "" ]
-then
-    sudo -n -u www-data ${CONFIG_BIN} set diffusion.ssh-port ${PHAB_DIFFUSION_SSH_PORT}
-fi
-
-if [ "${PHAB_DIFFUSION_SSH_USER}" != "" ]
-then
-    sudo -n -u www-data ${CONFIG_BIN} set diffusion.ssh-user ${PHAB_DIFFUSION_SSH_USER}
-fi
-
-if [ "${PHAB_PHABRICATOR_BASE_URI}" != "" ]
-then
-    sudo -n -u www-data ${CONFIG_BIN} set phabricator.base-uri ${PHAB_PHABRICATOR_BASE_URI}
 fi
 
 if [ "${PHAB_MYSQL_PASS_FILE}" != "" ]
@@ -84,6 +60,27 @@ fi
 if [ "${PHAB_MYSQL_HOST}" != "" ]
 then
     sudo -n -u www-data ${CONFIG_BIN} set mysql.host ${PHAB_MYSQL_HOST}
+fi
+
+# start configuration of phabricator with docker environment variables
+if [ "${PHAB_PHD_USER}" != "" ]
+then
+    sudo -n -u www-data ${CONFIG_BIN} set phd.user ${PHAB_PHD_USER}
+fi
+
+if [ "${PHAB_DIFFUSION_SSH_PORT}" != "" ]
+then
+    sudo -n -u www-data ${CONFIG_BIN} set diffusion.ssh-port ${PHAB_DIFFUSION_SSH_PORT}
+fi
+
+if [ "${PHAB_DIFFUSION_SSH_USER}" != "" ]
+then
+    sudo -n -u www-data ${CONFIG_BIN} set diffusion.ssh-user ${PHAB_DIFFUSION_SSH_USER}
+fi
+
+if [ "${PHAB_PHABRICATOR_BASE_URI}" != "" ]
+then
+    sudo -n -u www-data ${CONFIG_BIN} set phabricator.base-uri ${PHAB_PHABRICATOR_BASE_URI}
 fi
 
 if [ "${PHAB_STORAGE_MYSQL_ENGINE_MAX_SIZE}" != "" ]
@@ -118,6 +115,13 @@ then
     sed 's/PHAB_PHD_USER/'"${PHAB_PHD_USER}"'/g; s/PHAB_DIFFUSION_SSH_USER/'"${PHAB_DIFFUSION_SSH_USER}"'/g' /usr/src/docker-phab/git-sudo > /etc/sudoers.d/${PHAB_DIFFUSION_SSH_USER}-sudo
     chmod 440 /etc/sudoers.d/${PHAB_DIFFUSION_SSH_USER}-sudo
 fi
+
+
+if [ "${UPGRADE_ON_RESTART}" != "no" ]; then
+   ### DO STORAGE UPGRADE IF NEEDED ###############################################
+   $ROOT/phabricator/bin/storage upgrade --force
+fi
+
 
 # generate key if necessary (i.e. new docker image)
 if [ ! -e /etc/ssh/ssh_host_dsa_key ] || [ ! -e /etc/ssh/ssh_host_rsa_key ] || [ ! -e /etc/ssh/ssh_host_ecdsa_key ] || [ ! -e /etc/ssh/ssh_host_ed25519_key ]
