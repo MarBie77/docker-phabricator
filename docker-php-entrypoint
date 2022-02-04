@@ -56,6 +56,21 @@ then
     sudo -n -u www-data ${CONFIG_BIN} set phabricator.base-uri ${PHAB_PHABRICATOR_BASE_URI}
 fi
 
+if [ "${PHAB_MYSQL_PASS_FILE}" != "" ]
+then
+    PHAB_MYSQL_PASS=`cat ${PHAB_MYSQL_PASS_FILE}`
+fi
+
+if [ "${PHAB_MYSQL_USER_FILE}" != "" ]
+then
+    PHAB_MYSQL_USER=`cat ${PHAB_MYSQL_USER_FILE}`
+fi
+
+if [ "${PHAB_MYSQL_HOST_FILE}" != "" ]
+then
+    PHAB_MYSQL_PASS=`cat ${PHAB_MYSQL_HOST_FILE}`
+fi
+
 if [ "${PHAB_MYSQL_PASS}" != "" ]
 then
     sudo -n -u www-data ${CONFIG_BIN} set mysql.pass ${PHAB_MYSQL_PASS}
