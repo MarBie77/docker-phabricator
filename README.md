@@ -1,5 +1,10 @@
 # docker-phabricator
 
+**Deprecation Notice: Be aware, that phabricator is no longer regularly updated: https://admin.phacility.com/phame/post/view/11/phacility_is_winding_down_operations/ 
+This repo is no longer maintained. **
+
+Consider moving to Gitlab Community Edition: gitlab/gitlab-ce
+
 Docker image for Phabricator Deployment
 
 ## Usage in docker-compose.yml
